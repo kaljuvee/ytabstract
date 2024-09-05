@@ -1,10 +1,15 @@
 import streamlit as st
 import yaml
+import os
+from dotenv import load_dotenv
 from langchain.document_loaders import YoutubeLoader
 from langchain.vectorstores import FAISS
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
+
+# Load environment variables
+load_dotenv()
 
 # Load sample videos from YAML file with UTF-8 encoding
 def load_sample_videos():
@@ -46,11 +51,17 @@ st.title("YouTube Video Abstracts")
 
 # Sidebar for API key
 st.sidebar.title("Settings")
-api_key = st.sidebar.text_input("Enter your OpenAI API key", type="password")
+user_api_key = st.sidebar.text_input("Enter your OpenAI API key (https://platform.openai.com/api-keys)", type="password")
 save_key = st.sidebar.button("Save API Key")
 
-if save_key:
+if save_key and user_api_key:
     st.sidebar.success("API Key saved successfully!")
+
+# Get API key from user input or environment variable
+api_key = user_api_key or os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    st.sidebar.warning("No API key found. Please enter a key or set the OPENAI_API_KEY environment variable.")
 
 # Main content
 # Dropdown for sample videos
@@ -92,6 +103,6 @@ if st.button("Summarize"):
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
         else:
-            st.error("Please enter your OpenAI API key in the sidebar.")
+            st.error("No API key available. Please enter your OpenAI API key in the sidebar or set it as an environment variable.")
     else:
         st.error("Please select a sample video or enter a valid YouTube URL.")
