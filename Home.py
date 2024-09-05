@@ -22,8 +22,10 @@ def get_youtube_id(url):
     # Extract video ID from YouTube URL
     if "youtu.be" in url:
         return url.split("/")[-1]
-    elif "youtube.com" in url:
-        return url.split("v=")[1].split("&")[0]
+    elif "youtube.com" in url and "v=" in url:
+        v_index = url.index("v=")
+        amp_index = url.index("&") if "&" in url else len(url)
+        return url[v_index+2:amp_index]
     else:
         return url
 
@@ -34,16 +36,16 @@ def summarize_video(video_url, query, model_name, api_key):
     loader = YoutubeLoader(video_id=video_id, language="en")
     yt_docs = loader.load_and_split()
     
+    if not yt_docs:
+        raise ValueError("No content could be loaded from the video.")
+    
     embeddings = OpenAIEmbeddings(openai_api_key=api_key)
     vectorstore = FAISS.from_documents(yt_docs, embeddings)
-
     # Define LLM with the selected model
     llm = ChatOpenAI(model_name=model_name, temperature=0.7, openai_api_key=api_key)
-
     qa_yt = RetrievalQA.from_chain_type(llm=llm,
                                         chain_type="stuff",
                                         retriever=vectorstore.as_retriever())
-
     return qa_yt.run(query)
 
 # Streamlit app
@@ -53,13 +55,11 @@ st.title("YouTube Video Abstracts")
 st.sidebar.title("Settings")
 user_api_key = st.sidebar.text_input("Enter your OpenAI API key (https://platform.openai.com/api-keys)", type="password")
 save_key = st.sidebar.button("Save API Key")
-
 if save_key and user_api_key:
     st.sidebar.success("API Key saved successfully!")
 
 # Get API key from user input or environment variable
 api_key = user_api_key or os.getenv("OPENAI_API_KEY")
-
 if not api_key:
     st.sidebar.warning("No API key found. Please enter a key or set the OPENAI_API_KEY environment variable.")
 
@@ -86,7 +86,7 @@ if video_url:
     st.text(f"Selected video URL: {video_url}")
 
 # Model selection dropdown
-model_options = ["gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"]
+model_options = ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"]
 selected_model = st.selectbox("Choose a model:", model_options, index=0)
 
 # Query input with default value
@@ -100,8 +100,10 @@ if st.button("Summarize"):
                 try:
                     summary = summarize_video(video_url, query, selected_model, api_key)
                     st.markdown(summary)
+                except ValueError as ve:
+                    st.error(f"Error: {str(ve)}")
                 except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
+                    st.error(f"An unexpected error occurred: {str(e)}")
         else:
             st.error("No API key available. Please enter your OpenAI API key in the sidebar or set it as an environment variable.")
     else:
