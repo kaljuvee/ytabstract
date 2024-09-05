@@ -41,7 +41,7 @@ def summarize_video(video_url, query):
     vectorstore = FAISS.from_documents(yt_docs, embeddings)
 
     # Define LLM
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
 
     qa_yt = RetrievalQA.from_chain_type(llm=llm,
                                         chain_type="stuff",
