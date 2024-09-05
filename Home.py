@@ -86,7 +86,7 @@ if video_url:
     st.text(f"Selected video URL: {video_url}")
 
 # Model selection dropdown
-model_options = ["gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
+model_options = ["gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"]
 selected_model = st.selectbox("Choose a model:", model_options, index=0)
 
 # Query input with default value
