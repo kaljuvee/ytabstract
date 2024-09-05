@@ -66,7 +66,7 @@ else:
     video_url = st.text_input("Enter YouTube Video URL:")
 
 # Query input with default value
-default_query = "Summarize the main points of this video"
+default_query = "Summarize the main points of this video, reply in bullet point format."
 query = st.text_input("Enter your query:", value=default_query)
 
 if st.button("Summarize"):
