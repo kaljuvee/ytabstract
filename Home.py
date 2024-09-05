@@ -14,9 +14,9 @@ load_dotenv()
 # Get OpenAI API key from environment variable
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-# Load sample videos from YAML file
+# Load sample videos from YAML file with UTF-8 encoding
 def load_sample_videos():
-    with open("data/videos.yaml", "r") as file:
+    with open("data/videos.yaml", "r", encoding="utf-8") as file:
         return yaml.safe_load(file)
 
 sample_videos = load_sample_videos()
@@ -59,11 +59,19 @@ selected_sample = st.selectbox(
 )
 
 # YouTube URL input
-if selected_sample:
+custom_url = st.text_input("Enter YouTube Video URL:", "")
+
+# Determine which URL to use
+if custom_url:
+    video_url = custom_url
+elif selected_sample:
     video_url = sample_videos[selected_sample]
-    st.text(f"Selected video URL: {video_url}")
 else:
-    video_url = st.text_input("Enter YouTube Video URL:")
+    video_url = ""
+
+# Display the selected or entered URL
+if video_url:
+    st.text(f"Selected video URL: {video_url}")
 
 # Query input with default value
 default_query = "Summarize the main points of this video, reply in bullet point format."
