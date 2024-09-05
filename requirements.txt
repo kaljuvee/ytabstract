@@ -4,3 +4,4 @@ langchain
 youtube_transcript_api 
 faiss-cpu
 tiktoken
+python-dotenv
