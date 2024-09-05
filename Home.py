@@ -30,7 +30,7 @@ def get_youtube_id(url):
     else:
         return url
 
-def summarize_video(video_url, query):
+def summarize_video(video_url, query, model_name):
     video_id = get_youtube_id(video_url)
     
     # Load documents with YoutubeLoader
@@ -40,8 +40,8 @@ def summarize_video(video_url, query):
     embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(yt_docs, embeddings)
 
-    # Define LLM
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
+    # Define LLM with the selected model
+    llm = ChatOpenAI(model_name=model_name, temperature=0.7)
 
     qa_yt = RetrievalQA.from_chain_type(llm=llm,
                                         chain_type="stuff",
@@ -73,6 +73,10 @@ else:
 if video_url:
     st.text(f"Selected video URL: {video_url}")
 
+# Model selection dropdown
+model_options = ["gpt-4o", "gpt-4", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
+selected_model = st.selectbox("Choose a model:", model_options, index=0)
+
 # Query input with default value
 default_query = "Summarize the main points of this video, reply in bullet point format."
 query = st.text_input("Enter your query:", value=default_query)
@@ -80,8 +84,8 @@ query = st.text_input("Enter your query:", value=default_query)
 if st.button("Summarize"):
     if video_url:
         if openai_api_key:
-            with st.spinner("Processing video..."):
-                summary = summarize_video(video_url, query)
+            with st.spinner(f"Processing video using {selected_model}..."):
+                summary = summarize_video(video_url, query, selected_model)
             st.markdown(summary)
         else:
             st.error("OpenAI API key not found. Please check your .env file.")
