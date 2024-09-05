@@ -50,7 +50,7 @@ def summarize_video(video_url, query):
     return qa_yt.run(query)
 
 # Streamlit app
-st.title("YouTube Video Summarizer")
+st.title("YouTube Video Abstracts")
 
 # Dropdown for sample videos
 selected_sample = st.selectbox(
