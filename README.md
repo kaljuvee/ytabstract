@@ -1,14 +1,14 @@
-# YTsummarizer
+# YTAbstract
 
 ## Overview
 
-A simple demo of less than 100 lines that summarizes Youtube videos.
+A simple demo of less than 100 lines of code that summarizes Youtube videos.
 
 # Installing and running
 
 ### Clone the Repo
   ```
-  git clone https://github.com/kaljuvee/ytsummarizer.git
+  git clone https://github.com/kaljuvee/ytabstract.git
   ```
 
 ### Create and Activate the Virtual Environment
