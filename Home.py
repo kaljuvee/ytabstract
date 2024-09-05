@@ -1,18 +1,10 @@
 import streamlit as st
-import os
 import yaml
-from dotenv import load_dotenv
 from langchain.document_loaders import YoutubeLoader
 from langchain.vectorstores import FAISS
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Get OpenAI API key from environment variable
-openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Load sample videos from YAML file with UTF-8 encoding
 def load_sample_videos():
@@ -30,18 +22,18 @@ def get_youtube_id(url):
     else:
         return url
 
-def summarize_video(video_url, query, model_name):
+def summarize_video(video_url, query, model_name, api_key):
     video_id = get_youtube_id(video_url)
     
     # Load documents with YoutubeLoader
     loader = YoutubeLoader(video_id=video_id, language="en")
     yt_docs = loader.load_and_split()
     
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
     vectorstore = FAISS.from_documents(yt_docs, embeddings)
 
     # Define LLM with the selected model
-    llm = ChatOpenAI(model_name=model_name, temperature=0.7)
+    llm = ChatOpenAI(model_name=model_name, temperature=0.7, openai_api_key=api_key)
 
     qa_yt = RetrievalQA.from_chain_type(llm=llm,
                                         chain_type="stuff",
@@ -52,6 +44,15 @@ def summarize_video(video_url, query, model_name):
 # Streamlit app
 st.title("YouTube Video Abstracts")
 
+# Sidebar for API key
+st.sidebar.title("Settings")
+api_key = st.sidebar.text_input("Enter your OpenAI API key", type="password")
+save_key = st.sidebar.button("Save API Key")
+
+if save_key:
+    st.sidebar.success("API Key saved successfully!")
+
+# Main content
 # Dropdown for sample videos
 selected_sample = st.selectbox(
     "Choose a sample video or enter your own URL below:",
@@ -83,11 +84,14 @@ query = st.text_input("Enter your query:", value=default_query)
 
 if st.button("Summarize"):
     if video_url:
-        if openai_api_key:
+        if api_key:
             with st.spinner(f"Processing video using {selected_model}..."):
-                summary = summarize_video(video_url, query, selected_model)
-            st.markdown(summary)
+                try:
+                    summary = summarize_video(video_url, query, selected_model, api_key)
+                    st.markdown(summary)
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
         else:
-            st.error("OpenAI API key not found. Please check your .env file.")
+            st.error("Please enter your OpenAI API key in the sidebar.")
     else:
         st.error("Please select a sample video or enter a valid YouTube URL.")
